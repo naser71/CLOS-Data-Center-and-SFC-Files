@@ -1,2 +1,2 @@
 # CLOS-Data-Center-and-SFC-Files
-This repository included the CLOS data center routers configurations and the SFC configuration files
+This repository includes the CLOS data center router configurations and the SFC configuration files for the thesis, 'Deployment of Containerized Service Function Chain in a Data Centre'
