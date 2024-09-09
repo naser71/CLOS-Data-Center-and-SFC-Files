@@ -1,0 +1,53 @@
+RP/0/0/CPU0:TOR2#show running-config 
+Tue Apr  9 06:17:46.632 UTC
+Building configuration...
+!! IOS XR Configuration 6.3.1
+!! Last configuration change at Sun Mar 31 19:36:50 2024 by cisco
+!
+hostname TOR2
+interface Loopback1
+ ipv4 address 70.70.70.70 255.255.255.255
+!
+interface MgmtEth0/0/CPU0/0
+ shutdown
+!
+interface GigabitEthernet0/0/0/0
+ shutdown
+!
+interface GigabitEthernet0/0/0/1
+ ipv4 address 192.168.40.1 255.255.255.0
+!
+interface GigabitEthernet0/0/0/2
+ ipv4 address 192.168.50.1 255.255.255.0
+!
+interface GigabitEthernet0/0/0/3
+ ipv4 address 192.168.11.2 255.255.255.0
+!
+route-policy pass_all
+  pass
+end-policy
+!
+router bgp 64520
+ bgp router-id 70.70.70.70
+ address-family ipv4 unicast
+  network 70.70.70.70/32
+  redistribute connected
+ !
+ neighbor 192.168.40.2
+  remote-as 64500
+  address-family ipv4 unicast
+   route-policy pass_all in
+   route-policy pass_all out
+  !
+ !
+ neighbor 192.168.50.2
+  remote-as 64500
+  address-family ipv4 unicast
+   route-policy pass_all in
+   route-policy pass_all out
+  !
+ !
+!
+end
+
+RP/0/0/CPU0:TOR2# 

@@ -1,0 +1,115 @@
+RP/0/0/CPU0:edge#show running-config 
+Tue Apr  9 06:12:30.572 UTC
+Building configuration...
+!! IOS XR Configuration 6.3.1
+!! Last configuration change at Tue Apr  9 05:04:33 2024 by cisco
+!
+hostname edge
+logging console disable
+vrf A
+ address-family ipv4 unicast
+  import route-target
+   64500:1
+  !
+  export route-target
+   64500:1
+  !
+ !
+!
+line console
+ exec-timeout 0 0
+ absolute-timeout 0
+ session-timeout 0
+!
+line default
+ exec-timeout 0 0
+ absolute-timeout 0
+ session-timeout 0
+!
+interface Loopback1
+ ipv4 address 50.50.50.50 255.255.255.255
+!
+interface MgmtEth0/0/CPU0/0
+ shutdown
+!
+interface GigabitEthernet0/0/0/0
+ ipv4 address 192.168.18.2 255.255.255.0
+!
+interface GigabitEthernet0/0/0/1
+ vrf A
+ ipv4 address 192.168.19.2 255.255.255.0
+!
+interface GigabitEthernet0/0/0/2
+ ipv4 address 192.168.105.1 255.255.255.0
+!
+interface GigabitEthernet0/0/0/3
+ ipv4 address 192.168.17.2 255.255.255.0
+!
+route-policy pass_all
+  pass
+end-policy
+!
+router ospf 1
+ router-id 50.50.50.50
+ address-family ipv4 unicast
+ area 0
+  interface Loopback1
+  !
+  interface GigabitEthernet0/0/0/0
+   network point-to-point
+  !
+  interface GigabitEthernet0/0/0/2
+   network point-to-point
+  !
+  interface GigabitEthernet0/0/0/3
+   network point-to-point
+  !
+ !
+!
+router bgp 64500
+ bgp router-id 50.50.50.50
+ address-family ipv4 unicast
+  network 50.50.50.50/32
+  redistribute connected
+ !
+ address-family vpnv4 unicast
+ !
+ neighbor-group DC_Clients
+  remote-as 64500
+  update-source Loopback1
+  address-family ipv4 unicast
+   route-reflector-client
+  !
+  address-family vpnv4 unicast
+   route-reflector-client
+  !
+ !
+ neighbor 10.10.10.10
+  use neighbor-group DC_Clients
+ !
+ neighbor 20.20.20.20
+  use neighbor-group DC_Clients
+ !
+ neighbor 30.30.30.30
+  use neighbor-group DC_Clients
+ !
+ neighbor 40.40.40.40
+  use neighbor-group DC_Clients
+ !
+ vrf A
+  rd 64500:1
+  address-family ipv4 unicast
+   redistribute connected
+  !
+ !
+!
+mpls ldp
+ router-id 50.50.50.50
+ interface GigabitEthernet0/0/0/0
+ !
+ interface GigabitEthernet0/0/0/2
+ !
+ interface GigabitEthernet0/0/0/3
+ !
+!
+end

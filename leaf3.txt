@@ -1,0 +1,137 @@
+RP/0/0/CPU0:leaf3#show running-config 
+Tue Apr  9 06:18:21.467 UTC
+Building configuration...
+!! IOS XR Configuration 6.3.1
+!! Last configuration change at Tue Apr  9 04:57:35 2024 by cisco
+!
+hostname leaf3
+logging console disable
+vrf A
+ address-family ipv4 unicast
+  import route-target
+   64500:1
+  !
+  export route-target
+   64500:1
+  !
+ !
+!
+vrf B
+ address-family ipv4 unicast
+  import route-target
+   64520:1
+  !
+  export route-target
+   64520:1
+  !
+ !
+!
+line console
+ exec-timeout 0 0
+ absolute-timeout 0
+ session-timeout 0
+!
+line default
+ exec-timeout 0 0
+ absolute-timeout 0
+ session-timeout 0
+!
+interface Loopback1
+ ipv4 address 30.30.30.30 255.255.255.255
+!
+interface MgmtEth0/0/CPU0/0
+ shutdown
+!
+interface GigabitEthernet0/0/0/0
+ shutdown
+!
+interface GigabitEthernet0/0/0/1
+ vrf A
+ ipv4 address 192.168.60.2 255.255.255.0
+!
+interface GigabitEthernet0/0/0/2
+ vrf B
+ ipv4 address 192.168.70.2 255.255.255.0
+!
+interface GigabitEthernet0/0/0/3
+ shutdown
+!
+interface GigabitEthernet0/0/0/4
+ ipv4 address 192.168.108.1 255.255.255.0
+!
+interface GigabitEthernet0/0/0/5
+ ipv4 address 192.168.109.1 255.255.255.0
+!
+interface GigabitEthernet0/0/0/6
+ shutdown
+!
+route-policy pass_all
+  pass
+end-policy
+!
+router ospf 1
+ router-id 30.30.30.30
+ address-family ipv4 unicast
+ area 0
+  network point-to-point
+  interface Loopback1
+  !
+  interface GigabitEthernet0/0/0/4
+   network point-to-point
+  !
+  interface GigabitEthernet0/0/0/5
+   network point-to-point
+  !
+ !
+!
+router bgp 64500
+ bgp router-id 30.30.30.30
+ address-family ipv4 unicast
+  network 30.30.30.30/32
+  redistribute connected
+ !
+ address-family vpnv4 unicast
+ !
+ neighbor 50.50.50.50
+  remote-as 64500
+  update-source Loopback1
+  address-family ipv4 unicast
+  !
+  address-family vpnv4 unicast
+  !
+ !
+ vrf A
+  rd 64500:1
+  address-family ipv4 unicast
+  !
+  neighbor 192.168.60.1
+   remote-as 64530
+   address-family ipv4 unicast
+    route-policy pass_all in
+    route-policy pass_all out
+   !
+  !
+ !
+ vrf B
+  rd 64520:1
+  address-family ipv4 unicast
+  !
+  neighbor 192.168.70.1
+   remote-as 64530
+   address-family ipv4 unicast
+    route-policy pass_all in
+    route-policy pass_all out
+   !
+  !
+ !
+!
+mpls ldp
+ router-id 30.30.30.30
+ interface GigabitEthernet0/0/0/4
+ !
+ interface GigabitEthernet0/0/0/5
+ !
+!
+end
+
+RP/0/0/CPU0:leaf3# 

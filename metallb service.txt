@@ -1,0 +1,111 @@
+master@new-master1:~$ cat firewall-pod.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: firewall
+  labels:
+    app: sfc-metal-service  # Add the desired label here
+  annotations:
+    k8s.v1.cni.cncf.io/networks: ovs-conf
+spec:
+  nodeName: worker1  # Specify the node name here
+  containers:
+  - name: firewall
+    image: alpine
+    command: ["/bin/sh", "-c", "while true; do sleep 1000; done"]
+    securityContext:
+      privileged: true
+      capabilities:
+        add:
+          - NET_ADMIN
+    resources:
+      limits:
+        ovs-cni.network.kubevirt.io/br1: 1
+
+master@new-master1:~$ cat ids-pod.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ids
+  annotations:
+    k8s.v1.cni.cncf.io/networks: '[{ "name": "ovs-conf" }, { "name": "ovs-conf" }]'
+spec:
+  nodeName: worker1  # Specify the node name here
+  containers:
+  - name: ids
+    image: alpine
+    command: ["/bin/sh", "-c", "while true; do sleep 1000; done"]
+    securityContext:
+      privileged: true
+      capabilities:
+        add:
+          - NET_ADMIN
+    resources:
+      limits:
+        ovs-cni.network.kubevirt.io/br1: 2
+
+master@new-master1:~$ cat web-pod.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web
+  annotations:
+    k8s.v1.cni.cncf.io/networks: ovs-conf
+spec:
+  nodeName: worker2  # Specify the node name here
+  containers:
+  - name: web
+    image: alpine
+    command: ["/bin/sh", "-c", "while true; do sleep 1000; done"]
+    securityContext:
+      privileged: true
+      capabilities:
+        add:
+          - NET_ADMIN
+    resources:
+      limits:
+        ovs-cni.network.kubevirt.io/br1: 1
+master@new-master1:~$ cat deployment_bgp_sfc.yaml
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: firstbgp-pool
+  namespace: metallb-system
+spec:
+  addresses:
+  - 172.16.1.240-172.16.1.250
+---
+apiVersion: metallb.io/v1beta1
+kind: BGPAdvertisement
+metadata:
+  name: sfcbgp
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+  - firstbgp-pool
+---
+apiVersion: metallb.io/v1beta2
+kind: BGPPeer
+metadata:
+  name: peerbgp
+  namespace: metallb-system
+spec:
+  myASN: 64510
+  peerASN: 64510
+  peerAddress: 192.168.10.2
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sfc-metal-service
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: sfc-metal-service
+  type: LoadBalancer
+
+master@new-master1:~$

@@ -1,0 +1,79 @@
+RP/0/0/CPU0:core#show running-config 
+Tue Apr  9 06:14:39.521 UTC
+Building configuration...
+!! IOS XR Configuration 6.3.1
+!! Last configuration change at Tue Apr  9 04:45:12 2024 by cisco
+!
+hostname core
+interface Loopback1
+ ipv4 address 90.90.90.90 255.255.255.255
+!
+interface MgmtEth0/0/CPU0/0
+ shutdown
+!
+interface GigabitEthernet0/0/0/0
+ ipv4 address 192.168.102.2 255.255.255.0
+!
+interface GigabitEthernet0/0/0/1
+ ipv4 address 192.168.103.2 255.255.255.0
+!
+interface GigabitEthernet0/0/0/2
+ ipv4 address 192.168.105.2 255.255.255.0
+!
+interface GigabitEthernet0/0/0/3
+ shutdown
+!
+interface GigabitEthernet0/0/0/4
+ shutdown
+!
+interface GigabitEthernet0/0/0/5
+ shutdown
+!
+interface GigabitEthernet0/0/0/6
+ shutdown
+!
+router ospf 1
+ router-id 90.90.90.90
+ address-family ipv4 unicast
+ area 0
+  network point-to-point
+  interface Loopback1
+  !
+  interface GigabitEthernet0/0/0/0
+   network point-to-point
+  !
+  interface GigabitEthernet0/0/0/1
+   network point-to-point
+  !
+  interface GigabitEthernet0/0/0/2
+   network point-to-point
+  !
+ !
+!
+router bgp 64500
+ bgp router-id 90.90.90.90
+ address-family ipv4 unicast
+  network 90.90.90.90/32
+  redistribute connected
+ !
+ address-family vpnv4 unicast
+ !
+ neighbor 50.50.50.50
+  remote-as 64500
+  update-source Loopback1
+  address-family vpnv4 unicast
+  !
+ !
+!
+mpls ldp
+ router-id 90.90.90.90
+ interface GigabitEthernet0/0/0/0
+ !
+ interface GigabitEthernet0/0/0/1
+ !
+ interface GigabitEthernet0/0/0/2
+ !
+!
+end
+
+RP/0/0/CPU0:core# 
